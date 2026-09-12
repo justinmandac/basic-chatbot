@@ -20,6 +20,41 @@ type ChatHistoryEntry = {
     content: string;
   };
 };
+
+app.get('/session/:sessionId', async (req, res) => {
+  const { sessionId } = req.params;
+  if (ChatHistoryRepository[sessionId]) {
+    console.log(`[GET] /session/${sessionId} - Session found.`);
+    res.json({ sessionId, history: ChatHistoryRepository[sessionId] });
+  } else {
+    console.log(`[GET] /session/${sessionId} - Session not found.`);
+    res.status(404).json({ error: 'Session not found' });
+  }
+});
+
+app.post('/session', async (req, res) => {
+  // Create session logic here. For now, just return a random session ID.
+  const sessionId = Math.random().toString(36).substring(2, 15);
+
+  ChatHistoryRepository[sessionId] = [];
+  console.log(`[POST] /session - New session created with ID: ${sessionId}`);
+
+  res.json({ sessionId });
+});
+
+app.delete('/session/:sessionId', async (req, res) => {
+  const { sessionId } = req.params;
+  if (ChatHistoryRepository[sessionId]) {
+    delete ChatHistoryRepository[sessionId];
+    console.log(`[DELETE] /session/${sessionId} - Session deleted.`);
+    res.json({ message: 'Session deleted' });
+  } else {
+    console.log(`[DELETE] /session/${sessionId} - Session not found.`);
+    res.status(404).json({ error: 'Session not found' });
+  }
+});
+
+
 // Token Settings
 const MAX_HISTORY_LENGTH = 20; // Maximum number of messages to keep in history
 const MAX_TOKENS = 8192; // Maximum number of tokens allowed in the context
@@ -52,6 +87,10 @@ app.post('/chat', async (req, res) => {
   // Implement message validation here. Externalize this once it grows bigger.
   if (!sessionId) {
     return res.status(400).json({ error: 'Session ID is required' });
+  }
+
+  if (typeof ChatHistoryRepository[sessionId] === 'undefined') {
+    return res.status(404).json({ error: 'Session not found' });
   }
 
   if (!message) {
