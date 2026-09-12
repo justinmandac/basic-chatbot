@@ -1,0 +1,26 @@
+meta {
+  name: Send Message
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/chat
+  body: json
+  auth: inherit
+}
+
+headers {
+  session-id: 123456
+}
+
+body:json {
+  {
+    "message": ""
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
